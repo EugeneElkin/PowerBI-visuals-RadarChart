@@ -43,6 +43,7 @@ import SelectableDataPoint = interactivityService.SelectableDataPoint;
 import {TooltipEnabledDataPoint} from "powerbi-visuals-utils-tooltiputils";
 
 import {RadarChartSettings} from "./settings";
+import { SeriesSettings } from "./seriesSettings";
 
 export interface RadarChartDatapoint extends SelectableDataPoint, TooltipEnabledDataPoint {
     x: number;
@@ -100,6 +101,7 @@ export interface RadarChartSeries {
     dataPoints: RadarChartDatapoint[];
     identity: ISelectionId;
     hasHighlights?: boolean;
+    settings?: SeriesSettings;
 }
 
 export interface RadarChartCircularSegment {

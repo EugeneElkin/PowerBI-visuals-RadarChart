@@ -77,26 +77,6 @@
                     },
                     "suppressFormatPainterCopy": true
                 },
-                "labelColor": {
-                    "displayName": "Color",
-                    "displayNameKey": "Visual_Color",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Text Size",
-                    "displayNameKey": "Visual_TextSize",
-                    "type": {
-                        "formatting": {
-                            "fontSize": true
-                        }
-                    }
-                },
                 "position": {
                     "type": {
                         "enumeration": [
@@ -144,6 +124,34 @@
                     },
                     "displayName": "Position",
                     "displayNameKey": "Visual_Position"
+                }
+            }
+        },
+        "legendItems": {
+            "displayName": "Legend items",
+            "displayNameKey": "Visual_LegendItems",
+            "description": "Display Legend Items Options",
+            "descriptionKey": "Visual_Description_LegendItems",
+            "properties": {
+                "labelColor": {
+                    "displayName": "Color",
+                    "displayNameKey": "Visual_Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontSize": {
+                    "displayName": "Text Size",
+                    "displayNameKey": "Visual_TextSize",
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
+                        }
+                    }
                 }
             }
         },

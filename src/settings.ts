@@ -24,14 +24,14 @@
  *  THE SOFTWARE.
  */
 
-import {dataViewObjectsParser} from "powerbi-visuals-utils-dataviewutils";
-import DataViewObjectsParser = dataViewObjectsParser.DataViewObjectsParser;
-
-import {legendInterfaces} from "powerbi-visuals-utils-chartutils";
+import { legendInterfaces } from "powerbi-visuals-utils-chartutils";
 import LegendPosition = legendInterfaces.LegendPosition;
 
-export class RadarChartSettings extends DataViewObjectsParser {
+import {ContainerSupportingSettings} from "./containerSupportingSettings";
+
+export class RadarChartSettings extends ContainerSupportingSettings {
     public legend: LegendSettings = new LegendSettings();
+    public legendItems: LegendItemsSettings = new LegendItemsSettings();
     public labels: LabelSettings = new LabelSettings();
     public dataPoint: DataPointSettings = new DataPointSettings();
     public line: LineSettings = new LineSettings();
@@ -42,9 +42,12 @@ export class LegendSettings {
     public show: boolean = true;
     public showTitle: boolean = true;
     public titleText: string = "";
+    public position: string = LegendPosition[LegendPosition.Top];
+}
+
+export class LegendItemsSettings {
     public labelColor: string = "black";
     public fontSize: number = 8;
-    public position: string = LegendPosition[LegendPosition.Top];
 }
 
 export class DataPointSettings {

@@ -111,6 +111,9 @@ import * as RadarChartUtils from "./radarChartUtils";
 import * as TooltipBuilder from "./tooltipBuilder";
 import { ScaleLinear } from "d3";
 
+import { SeriesSettings } from "./seriesSettings";
+import { BaseDescriptor } from "./containerSupportingSettings";
+
 export class RadarChart implements IVisual {
     private static VisualClassName: string = "radarChart";
     private static SegmentsSelector: ClassAndSelector = CreateClassAndSelector("segments");
@@ -300,6 +303,7 @@ export class RadarChart implements IVisual {
             values: DataViewValueColumns = catDv.values,
             series: RadarChartSeries[] = [],
             grouped: DataViewValueColumnGroup[];
+        
         const settings: RadarChartSettings = this.parseSettings(dataView, colorHelper);
         RadarChart.checkAndUpdateAxis(dataView, values);
         grouped = catDv && catDv.values
@@ -314,10 +318,10 @@ export class RadarChart implements IVisual {
         let hasHighlights: boolean = !!(values.length > 0 && values[0].highlights);
 
         let legendData: LegendData = {
-            fontSize: settings.legend.fontSize,
+            fontSize: settings.legendItems.fontSize,
             dataPoints: [],
             title: settings.legend.titleText,
-            labelColor: settings.legend.labelColor
+            labelColor: settings.legendItems.labelColor
         };
         for (let i: number = 0, iLen: number = values.length; i < iLen; i++) {
             let color: string = colorPalette.getColor(i.toString()).value,
@@ -356,7 +360,9 @@ export class RadarChart implements IVisual {
                 color: legendDataPointsColor,
                 icon: LegendIcon.Box,
                 selected: false,
-                identity: serieIdentity
+                identity: serieIdentity,
+                fontSize: settings.legendItems.fontSize,
+                labelColor: settings.legendItems.labelColor
             });
 
             for (let k: number = 0, kLen: number = values[i].values.length; k < kLen; k++) {
@@ -404,7 +410,8 @@ export class RadarChart implements IVisual {
                     name: displayName,
                     dataPoints: dataPoints,
                     identity: <any>serieIdentity,
-                    hasHighlights: hasHighlights
+                    hasHighlights: hasHighlights,
+                    settings: this.prepareSeriesSettings(settings, values[i])
                 };
 
                 series.push(radarChartSeries);
@@ -584,9 +591,29 @@ export class RadarChart implements IVisual {
         this.legend.drawLegend({ dataPoints: [] }, _.clone(this.viewport));
     }
 
+    /*
+    
+    */
+    private static prepareSeriesSettings(settings: RadarChartSettings, column: powerbi.DataViewValueColumn): SeriesSettings {
+        const seriesSettings: SeriesSettings = <SeriesSettings>(SeriesSettings.getDefault());
+
+        for (const propertyName of Object.keys(seriesSettings)) {
+            const descriptor: BaseDescriptor = seriesSettings[propertyName];
+            const defaultDescriptor: BaseDescriptor = settings[propertyName];
+
+            if (descriptor && descriptor.applyDefault && defaultDescriptor) {
+                descriptor.applyDefault(defaultDescriptor);
+            }
+        }
+
+        seriesSettings.parseObjects(column.source.objects);
+
+        return seriesSettings;
+    }
+
     private changeAxesLineColorInHighMode(selectionArray: d3.Selection<d3.BaseType, any, any, any>[]): void {
         if (this.colorHelper.isHighContrast) {
-            let lineColor: string = this.settings.legend.labelColor;
+            let lineColor: string = this.settings.legendItems.labelColor;
 
             selectionArray.forEach((selection) => {
                 selection.style("stroke", lineColor);
@@ -1163,7 +1190,7 @@ export class RadarChart implements IVisual {
         if (this.colorHelper.isHighContrast)
             this.legendObjectProperties["labelColor"] = {
                 solid: {
-                    color: this.colorHelper.getHighContrastColor("foreground", this.settings.legend.labelColor)
+                    color: this.colorHelper.getHighContrastColor("foreground", this.settings.legendItems.labelColor)
                 }
             };
     }
@@ -1187,7 +1214,7 @@ export class RadarChart implements IVisual {
 
         settings.dataPoint.fill = colorHelper.getHighContrastColor("foreground", settings.dataPoint.fill);
         settings.labels.color = colorHelper.getHighContrastColor("foreground", settings.labels.color);
-        settings.legend.labelColor = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor);
+        settings.legendItems.labelColor = colorHelper.getHighContrastColor("foreground", settings.legendItems.labelColor);
 
         return settings;
     }
@@ -1236,10 +1263,31 @@ export class RadarChart implements IVisual {
     * validation and return other values/defaults
     */
     public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
-        let instances: VisualObjectInstanceEnumeration = null;
-        switch (options.objectName) {
+        const { objectName } = options;
+
+        switch (objectName) {
             case "dataPoint":
                 return this.enumerateDataPoint();
+            case "legendItems":
+                const enumerationObject: powerbi.VisualObjectInstanceEnumerationObject
+                    = this.settings.enumerateObjectInstancesWithSelectionId(
+                        options,
+                        "[All]",
+                        null,
+                    );
+
+                for (const series of this.radarChartData.series) {
+                    if (series && series.settings) {
+                        series.settings.enumerateObjectInstancesWithSelectionId(
+                            options,
+                            series.name,
+                            series.identity,
+                            enumerationObject,
+                        );
+                    }
+                }
+
+                return enumerationObject;
             default:
                 return RadarChartSettings.enumerateObjectInstances(
                     this.settings || RadarChartSettings.getDefault(),
